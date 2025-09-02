@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>OMR Viewer</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; }
+    input { padding: 8px; width: 200px; }
+    button { padding: 8px; }
+    .preview { margin-top: 20px; }
+    .preview img { max-width: 100%; margin-bottom: 20px; border: 1px solid #ccc; }
+  </style>
+</head>
+<body>
+  <h2>Enter Your Roll Number</h2>
+  <form id="searchForm">
+    <input type="text" id="roll" placeholder="Roll Number" required>
+    <button type="submit">View</button>
+  </form>
+  <hr>
+  <div id="result"></div>
+
+  <script>
+    // possible extensions
+    const extensions = ["jpg", "png", "jpeg"];
+
+    document.getElementById("searchForm").addEventListener("submit", function(e) {
+      e.preventDefault();
+      const roll = document.getElementById("roll").value.trim();
+      const resultDiv = document.getElementById("result");
+      resultDiv.innerHTML = "";
+
+      if (!roll) {
+        resultDiv.innerHTML = "<h3>Please enter a roll number.</h3>";
+        return;
+      }
+
+      let found = false;
+      let attempts = 0;
+      let maxAttempts = 20; // check up to _20 files
+
+      for (let i = 1; i <= maxAttempts; i++) {
+        extensions.forEach(ext => {
+          const fileUrl = `files/${roll}_${i}.${ext}`;
+          const img = new Image();
+
+          img.onload = function() {
+            if (!found) {
+              resultDiv.innerHTML = `<h3>Files for Roll: ${roll}</h3><div class='preview'></div>`;
+              found = true;
+            }
+            resultDiv.querySelector(".preview").appendChild(img);
+          };
+
+          img.onerror = function() {
+            attempts++;
+          };
+
+          img.src = fileUrl;
+        });
+      }
+
+      // also check plain filename (without _1)
+      extensions.forEach(ext => {
+        const fileUrl = `files/${roll}.${ext}`;
+        const img = new Image();
+
+        img.onload = function() {
+          if (!found) {
+            resultDiv.innerHTML = `<h3>Files for Roll: ${roll}</h3><div class='preview'></div>`;
+            found = true;
+          }
+          resultDiv.querySelector(".preview").appendChild(img);
+
+
+        };
+
+        img.onerror = function() {
+          attempts++;
+        };
+
+        img.src = fileUrl;
+      });
+
+      setTimeout(() => {
+        if (!found) {
+          resultDiv.innerHTML = `<h3>No file found for Roll: ${roll}</h3>`;
+        }
+      }, 1500);
+    });
+  </script>
+</body>
+</html>
